@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Home from './pages/Home';
 import VoiceAssistant from './pages/VoiceAssistant';
 import WebDesign from './pages/WebDesign';
@@ -25,6 +26,7 @@ function App() {
         <Route path="/project/web-design" element={<WebDesign />} />
         <Route path="/project/ticketing" element={<Ticketing />} />
       </Routes>
+      <SpeedInsights />
     </Router>
   );
 }
