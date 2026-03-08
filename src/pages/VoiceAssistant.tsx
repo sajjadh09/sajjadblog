@@ -3,9 +3,6 @@ import { X, Mic, MicOff, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { GoogleGenAI } from '@google/genai';
 
-// Initialize Gemini API
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
 type AppState = 'idle' | 'listening' | 'thinking' | 'speaking' | 'error';
 
 export default function VoiceAssistant() {
@@ -16,6 +13,15 @@ export default function VoiceAssistant() {
   
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
+
+  // Initialize Gemini API lazily
+  const getAIClient = () => {
+    const key = process.env.GEMINI_API_KEY;
+    if (!key) {
+      throw new Error("GEMINI_API_KEY is missing. Please set it in your environment variables.");
+    }
+    return new GoogleGenAI({ apiKey: key });
+  };
 
   useEffect(() => {
     synthRef.current = window.speechSynthesis;
@@ -85,6 +91,7 @@ export default function VoiceAssistant() {
     setAppState('thinking');
     
     try {
+      const ai = getAIClient();
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: text,
