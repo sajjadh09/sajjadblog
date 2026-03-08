@@ -1,0 +1,5 @@
+{
+  "name": "Sajjad Portfolio",
+  "description": "A modern portfolio website for a software engineer and tech writer.",
+  "requestFramePermissions": ["microphone"]
+}
