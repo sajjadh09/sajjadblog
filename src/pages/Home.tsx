@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Code, Search, Moon, Sun, Menu, X, Laptop, Bot, Ticket, ChevronDown, ChevronUp, CheckCircle, AlertCircle, ExternalLink, Github, ChevronLeft, ChevronRight } from 'lucide-react';
 import emailjs from 'emailjs-com';
 import { projects, blogPosts, testimonials } from '../data';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 
 function StatCounter({ target, duration = 2000 }: { target: number, duration?: number }) {
@@ -73,6 +73,25 @@ export default function Home() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const location = useLocation();
+  useEffect(() => {
+    if (location.hash) {
+      const id = location.hash.substring(1);
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          const navHeight = 80;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - navHeight;
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
+    }
+  }, [location.hash]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';

@@ -82,7 +82,7 @@ export default function WebDesign() {
               <a href="https://github.com/sajjad/web-design-agency" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-slate-300 hover:text-white transition-colors flex items-center gap-2 mr-2">
                 Source Code
               </a>
-              <a href="#" className="text-sm font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-2">
+              <a href="#" className="text-sm font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-2" onClick={(e) => e.preventDefault()}>
                 <Github size={18} /> GitHub
               </a>
               <button className="bg-white text-black px-4 py-2 rounded-full text-sm font-bold hover:bg-slate-200 transition-colors">
@@ -100,10 +100,10 @@ export default function WebDesign() {
         {/* Mobile Menu Overlay */}
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-30 bg-[#030014]/95 backdrop-blur-xl pt-24 px-6 md:hidden flex flex-col gap-6 border-b border-white/10 pb-8">
-            <a href="#features" className="text-2xl font-medium text-slate-300 hover:text-white">Features</a>
-            <a href="#components" className="text-2xl font-medium text-slate-300 hover:text-white">Components</a>
-            <a href="#docs" className="text-2xl font-medium text-slate-300 hover:text-white">Documentation</a>
-            <a href="#pricing" className="text-2xl font-medium text-slate-300 hover:text-white">Pricing</a>
+            <a href="#features" className="text-2xl font-medium text-slate-300 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Features</a>
+            <a href="#components" className="text-2xl font-medium text-slate-300 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Components</a>
+            <a href="#docs" className="text-2xl font-medium text-slate-300 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Documentation</a>
+            <a href="#pricing" className="text-2xl font-medium text-slate-300 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
             <hr className="border-white/10 my-4" />
             <button className="bg-white text-black px-4 py-2 rounded-full text-base font-bold w-full">
               Get Started
@@ -113,7 +113,7 @@ export default function WebDesign() {
 
         {/* Hero Section */}
         <section className="pt-40 pb-20 px-6 md:pt-52 md:pb-32 max-w-7xl mx-auto flex flex-col items-center text-center">
-          <a href="#" className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-cyan-400 text-sm font-medium mb-8 hover:bg-white/10 transition-colors">
+          <a href="#" onClick={(e) => e.preventDefault()} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-cyan-400 text-sm font-medium mb-8 hover:bg-white/10 transition-colors">
             <Star size={14} className="fill-cyan-400" /> Introducing Chronicle UI v2.0 <ChevronRight size={14} />
           </a>
           
@@ -291,8 +291,8 @@ export default function WebDesign() {
               © 2026 Chronicle UI. A Web Design Chronicle Project.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="text-slate-500 hover:text-white transition-colors"><Github size={20} /></a>
-              <a href="#" className="text-slate-500 hover:text-white transition-colors"><Globe size={20} /></a>
+              <a href="#" className="text-slate-500 hover:text-white transition-colors" onClick={(e) => e.preventDefault()}><Github size={20} /></a>
+              <a href="#" className="text-slate-500 hover:text-white transition-colors" onClick={(e) => e.preventDefault()}><Globe size={20} /></a>
             </div>
           </div>
         </footer>

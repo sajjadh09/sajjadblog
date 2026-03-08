@@ -39,6 +39,22 @@ export default function Ticketing() {
     return ticketType === 'vip' ? event.price * 2.5 : event.price;
   };
 
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    if (id === '#') return;
+    const element = document.getElementById(id);
+    if (element) {
+      const navHeight = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - navHeight;
+  
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 font-sans">
       
@@ -55,9 +71,9 @@ export default function Ticketing() {
           </div>
           
           <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
-            <a href="#" className="hover:text-indigo-400">Find Events</a>
-            <a href="#" className="hover:text-indigo-400">Create Event</a>
-            <a href="#" className="hover:text-indigo-400">Help Center</a>
+            <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-indigo-400">Find Events</a>
+            <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-indigo-400">Create Event</a>
+            <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-indigo-400">Help Center</a>
           </div>
           
           <div className="flex items-center gap-4">
