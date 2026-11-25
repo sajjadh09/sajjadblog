@@ -1,55 +1,95 @@
-export const projects = [
-    { 
-        title: 'Python Voice Assistant', 
-        tech: ['Python', 'SpeechRecognition', 'Pyttsx3'], 
-        desc: 'A voice assistant that detects laughter and responds with personality. Built with NLTK for emotion detection and PyAudio for real-time processing.',
-        link: 'https://github.com/sajjad/voice-assistant',
-        demoLink: '/project/voice-assistant',
-        image: 'https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?auto=format&fit=crop&q=80&w=800'
-    },
-    {
-        title: 'Web Design Chronicle', 
-        tech: ['HTML', 'CSS', 'JavaScript'],  
-        desc: 'A comprehensive chronicle of modern web design patterns and layouts. Features responsive grids, dark mode, and interactive components.',
-        link: 'https://github.com/sajjad/web-design-chronicle',
-        demoLink: '/project/web-design',
-        image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=800'
-    },
-    { 
-        title: 'Event Ticketing Platform', 
-        tech: ['React', 'Node.js', 'MongoDB'],  
-        desc: 'Custom ticketing platforms for events, concerts, and businesses. Includes QR code generation, Stripe payments, and an admin dashboard.',
-        link: 'https://github.com/sajjad/event-ticketing',
-        demoLink: '/project/ticketing',
-        image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&q=80&w=800'
-    },
-];
+export type Project = {
+    title: string;
+    kind: 'AI' | 'Web app' | 'Client demo';
+    tech: string[];
+    desc: string;
+    link?: string;      // GitHub source
+    demoLink?: string;  // live site or internal page
+    status: 'Live' | 'Building' | 'Demo';
+};
 
-export const testimonials = [
+const GH = 'https://github.com/sajjadh09';
+
+export const projects: Project[] = [
     {
-        id: 1,
-        name: "Sarah Jenkins",
-        role: "Operations Manager, TechFlow Inc.",
-        content: "Sajjad's Python Voice Assistant completely transformed our customer service kiosk. It's not just functional; the laugh detection makes it feel genuinely human. Our customer satisfaction scores went up by 40% in the first month.",
-        project: "Python Voice Assistant",
-        image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200"
+        title: 'Python Voice Assistant',
+        kind: 'AI',
+        tech: ['Python', 'SpeechRecognition', 'Pyttsx3', 'NLTK'],
+        desc: 'A voice assistant that picks up laughter and humour in what you say and replies with personality.',
+        link: `${GH}/voice-assistant`,
+        demoLink: '/project/voice-assistant',
+        status: 'Building',
     },
     {
-        id: 2,
-        name: "David Okeke",
-        role: "Founder, Lagos Events Co.",
-        content: "We needed a robust ticketing platform that could handle thousands of concurrent users and integrate seamlessly with local payment gateways. Sajjad delivered a flawless system that processed over 10,000 tickets without a single crash.",
-        project: "Event Ticketing Platform",
-        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200"
+        title: 'Web Design Chronicle',
+        kind: 'Web app',
+        tech: ['React', 'TypeScript', 'CSS Grid'],
+        desc: 'An interactive showcase of production-ready React layout patterns and UI components.',
+        link: `${GH}/web-design-chronicle`,
+        demoLink: 'https://web-design-chronicle.vercel.app/',
+        status: 'Live',
     },
     {
-        id: 3,
-        name: "Elena Rodriguez",
-        role: "Creative Director, Studio Minimal",
-        content: "The Web Design Chronicle is a masterpiece of modern CSS architecture. Sajjad's deep understanding of Grid and Flexbox helped our agency streamline our development process. He doesn't just write code; he crafts digital experiences.",
-        project: "Web Design Chronicle",
-        image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=200"
-    }
+        title: 'Event Ticketing Platform',
+        kind: 'Web app',
+        tech: ['React', 'Node.js', 'MongoDB'],
+        desc: 'Ticketing for events and communities: QR-code tickets, payments and an admin dashboard.',
+        link: `${GH}/event-ticketing`,
+        demoLink: '/project/ticketing',
+        status: 'Building',
+    },
+    {
+        title: 'Food Buddy',
+        kind: 'AI',
+        tech: ['TypeScript', 'React', 'Gemini API'],
+        desc: 'A cooking companion that turns the ingredients you have into recipes, with live kitchen help and AI meal previews.',
+        link: `${GH}/Food-Buddy`,
+        demoLink: 'https://food-buddy-iota.vercel.app',
+        status: 'Live',
+    },
+    {
+        title: 'Rebel Fashion',
+        kind: 'Web app',
+        tech: ['Next.js', 'TypeScript', 'Tailwind'],
+        desc: 'Front end of a multi-seller clothing marketplace: seller sign-up, listing approval and an admin view.',
+        link: `${GH}/rebel-fashion-2`,
+        demoLink: 'https://rebel-fashion-2.vercel.app',
+        status: 'Live',
+    },
+    {
+        title: 'Dajjaja Farms Shop',
+        kind: 'Client demo',
+        tech: ['React', 'Vite', 'Paystack'],
+        desc: 'Online shop for a halal meat store in Gwarinpa, Abuja: cart, on-site checkout, order tracking and an owner dashboard.',
+        demoLink: 'https://dajjaja-farms.vercel.app',
+        status: 'Demo',
+    },
+    {
+        title: "Tyna's Chops",
+        kind: 'Client demo',
+        tech: ['HTML', 'CSS', 'JavaScript'],
+        desc: 'Ordering site for a small-chops and food-tray vendor in Abuja, with cart, checkout and WhatsApp orders.',
+        link: `${GH}/tynas-chops`,
+        demoLink: 'https://tynas-chops.vercel.app',
+        status: 'Demo',
+    },
+    {
+        title: 'Grasters Bakery',
+        kind: 'Client demo',
+        tech: ['HTML', 'CSS', 'JavaScript'],
+        desc: 'Website for an Abuja bakery: cakes, small chops and baking classes with one-tap WhatsApp ordering.',
+        link: `${GH}/grasters-bakery`,
+        demoLink: 'https://grasters-bakery.vercel.app',
+        status: 'Demo',
+    },
+    {
+        title: "Nil's Bakery",
+        kind: 'Client demo',
+        tech: ['React', 'Vite'],
+        desc: 'Dessert-shop storefront for Wuse 2: menu, custom-cake requests, on-site checkout and an owner dashboard.',
+        link: `${GH}/nils-bakery`,
+        status: 'Building',
+    },
 ];
 
 export const blogPosts = [
