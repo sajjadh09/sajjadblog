@@ -1,16 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap');
 
 :root, [data-pf="light"] {
-  --pf-bg: #ffffff;
-  --pf-bg-2: #f6f6f5;
+  --pf-bg: #fbfbfe;
+  --pf-bg-2: #f3f4fa;
   --pf-ink: #0b0b0c;
   --pf-dim: #5c5c63;
   --pf-mute: #9a9aa2;
   --pf-line: #e8e8ea;
   --pf-card: #ffffff;
   --pf-term: #0d0d0f;
-  --pf-glow: rgba(0, 0, 0, 0.06);
-  --pf-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.35);
+  --pf-glow: rgba(79, 70, 229, 0.10);
+  --pf-shadow: 0 30px 70px -30px rgba(30, 27, 75, 0.35);
+  --pf-accent: #4f46e5;
+  --pf-accent-2: #06b6d4;
+  --pf-accent-soft: #eef2ff;
+  --pf-on-accent: #ffffff;
 }
 [data-pf="dark"] {
   --pf-bg: #09090b;
@@ -21,8 +25,12 @@
   --pf-line: #222227;
   --pf-card: #111114;
   --pf-term: #000000;
-  --pf-glow: rgba(255, 255, 255, 0.07);
+  --pf-glow: rgba(129, 140, 248, 0.14);
   --pf-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.9);
+  --pf-accent: #818cf8;
+  --pf-accent-2: #22d3ee;
+  --pf-accent-soft: rgba(129, 140, 248, 0.12);
+  --pf-on-accent: #0b0b14;
 }
 
 html:has(.pf) body { background: var(--pf-bg); }
@@ -203,7 +211,7 @@ html:has(.pf) body { background: var(--pf-bg); }
 
 /* float-in reveal */
 .pf-reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1); }
-.pf-reveal.is-in { opacity: 1; transform: none; }
+.pf-reveal[data-in] { opacity: 1; transform: none; }
 
 @keyframes pf-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @keyframes pf-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
@@ -234,3 +242,37 @@ html:has(.pf) body { background: var(--pf-bg); }
   .pf *, .pf *::before { animation: none !important; transition: none !important; }
   .pf-reveal { opacity: 1; transform: none; }
 }
+
+/* ===== colour layer: light dev vibe ===== */
+.pf-hero { background-image: radial-gradient(circle, color-mix(in srgb, var(--pf-accent) 18%, transparent) 1px, transparent 1.2px); background-size: 22px 22px; }
+.pf-hero::after { content: ''; position: absolute; inset: auto 0 0 0; height: 120px; background: linear-gradient(transparent, var(--pf-bg)); pointer-events: none; }
+.pf-progress { background: linear-gradient(90deg, var(--pf-accent), var(--pf-accent-2)); }
+.pf-badge { border-color: var(--pf-accent); color: var(--pf-accent); }
+.pf-tabs { background: var(--pf-bg); }
+.pf-tabs button.active { background: var(--pf-accent); color: var(--pf-on-accent); }
+.pf-hero-icon { color: var(--pf-accent); }
+.pf-caret { color: var(--pf-accent-2); }
+.pf-btn-dark { background: var(--pf-accent); border-color: var(--pf-accent); color: var(--pf-on-accent) !important; }
+.pf-btn-dark:hover { box-shadow: 0 12px 30px -12px var(--pf-accent); }
+.pf-btn-ghost:hover { border-color: var(--pf-accent); color: var(--pf-accent); }
+.pf-switch span { background: var(--pf-accent); color: var(--pf-on-accent); }
+.pf-term-body b { color: #4ade80; }
+.pf-term-body .stack span:nth-child(3n+1) { color: #c4b5fd; }
+.pf-term-body .stack span:nth-child(3n+2) { color: #67e8f9; }
+.pf-term-body .stack span:nth-child(3n) { color: #fcd34d; }
+.pf-terminal { box-shadow: var(--pf-shadow), 0 0 60px -20px var(--pf-accent); }
+.pf-marquee b { color: var(--pf-accent); }
+.pf-stats b { background: linear-gradient(90deg, var(--pf-accent), var(--pf-accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.pf-kicker { color: var(--pf-accent); }
+.pf-nav a:hover { color: var(--pf-accent); background: var(--pf-accent-soft); }
+.pf-now li svg, .pf-service svg { color: var(--pf-accent); }
+.pf-chips button.on { background: var(--pf-accent); border-color: var(--pf-accent); color: var(--pf-on-accent); }
+.pf-card:hover { border-color: var(--pf-accent); box-shadow: 0 26px 50px -30px var(--pf-accent); }
+.pf-tags span { background: var(--pf-accent-soft); color: var(--pf-accent); }
+.pf-card-links a:hover, .pf-more:hover { color: var(--pf-accent) !important; }
+.pf-post-row:hover .pf-post-title b { color: var(--pf-accent); }
+.pf-service { background: var(--pf-bg); }
+.pf-service:hover { border-color: var(--pf-accent); }
+.pf-contact { background: linear-gradient(135deg, var(--pf-accent-soft), var(--pf-bg-2)); }
+.pf-form input:focus, .pf-form textarea:focus { border-color: var(--pf-accent); box-shadow: 0 0 0 3px var(--pf-accent-soft); }
+.pf-article h3 { color: var(--pf-accent); }

@@ -108,13 +108,33 @@ export default function Home() {
     const els = document.querySelectorAll('.pf-reveal');
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => {
-        if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
+        if (e.isIntersecting) { e.target.setAttribute('data-in', ''); io.unobserve(e.target); }
       }),
       { threshold: 0.12 },
     );
     els.forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, [filter]);
+
+  // come back to the same spot after opening a project page
+  useEffect(() => {
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    const saved = sessionStorage.getItem('pf-scroll');
+    if (!saved) return;
+    sessionStorage.removeItem('pf-scroll');
+    const { title, offset } = JSON.parse(saved) as { title: string; offset: number };
+    document.querySelectorAll('.pf-reveal').forEach((el) => el.setAttribute('data-in', ''));
+    const jump = () => {
+      const card = document.querySelector<HTMLElement>(`[data-project="${CSS.escape(title)}"]`);
+      if (card) window.scrollTo({ top: card.getBoundingClientRect().top + window.scrollY - Math.max(offset, 90), behavior: 'instant' as ScrollBehavior });
+    };
+    requestAnimationFrame(jump);
+    setTimeout(jump, 1200); // after the typed headline settles
+  }, []);
+  const rememberSpot = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const card = e.currentTarget.closest<HTMLElement>('[data-project]');
+    if (card) sessionStorage.setItem('pf-scroll', JSON.stringify({ title: card.dataset.project, offset: card.getBoundingClientRect().top }));
+  };
 
   // pointer glow in hero
   const onHeroMove = (e: React.MouseEvent) => {
@@ -322,7 +342,7 @@ export default function Home() {
           </div>
           <div className="pf-grid">
             {shown.map((p) => (
-              <article key={p.title} className="pf-card pf-reveal">
+              <article key={p.title} data-project={p.title} className="pf-card pf-reveal">
                 <div className="pf-card-top">
                   <span className="pf-kind">{p.kind}</span>
                   <span className={`pf-status s-${p.status.toLowerCase()}`}>{p.status}</span>
@@ -335,7 +355,8 @@ export default function Home() {
                     <a href={p.link} target="_blank" rel="noreferrer"><Github size={15} /> Source</a>
                   )}
                   {p.demoLink && (
-                    <a href={p.demoLink} target={p.demoLink.startsWith('http') ? '_blank' : undefined} rel="noreferrer">
+                    <a href={p.demoLink} target={p.demoLink.startsWith('http') ? '_blank' : undefined} rel="noreferrer"
+                      onClick={p.demoLink.startsWith('http') ? undefined : rememberSpot}>
                       <ArrowUpRight size={15} /> Live
                     </a>
                   )}
