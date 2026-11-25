@@ -276,3 +276,4 @@ html:has(.pf) body { background: var(--pf-bg); }
 .pf-contact { background: linear-gradient(135deg, var(--pf-accent-soft), var(--pf-bg-2)); }
 .pf-form input:focus, .pf-form textarea:focus { border-color: var(--pf-accent); box-shadow: 0 0 0 3px var(--pf-accent-soft); }
 .pf-article h3 { color: var(--pf-accent); }
+.pf-hero > .pf-wrap { position: relative; z-index: 1; }
