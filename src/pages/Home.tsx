@@ -1,465 +1,428 @@
-import React, { useState, useEffect } from 'react';
-import { Code, Search, Moon, Sun, Menu, X, Laptop, Bot, Ticket, ChevronDown, ChevronUp, CheckCircle, AlertCircle, ExternalLink, Github, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import emailjs from 'emailjs-com';
-import { projects, blogPosts, testimonials } from '../data';
-import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'motion/react';
+import {
+  Code2, Monitor, PenLine, Github, ArrowUpRight, Moon, Sun, Menu, X,
+  Send, CheckCircle, AlertCircle, ChevronDown, Bot, Store, Globe,
+} from 'lucide-react';
+import { projects, blogPosts } from '../data';
+import '../portfolio.css';
 
-function StatCounter({ target, duration = 2000 }: { target: number, duration?: number }) {
-  const [count, setCount] = useState(0);
+const GITHUB = 'https://github.com/sajjadh09';
 
+const roles = [
+  {
+    id: 'engineer',
+    tab: 'Software Engineer',
+    icon: Code2,
+    title: 'Software Engineer',
+    lede:
+      'Software Engineering student at FUT Minna building web apps, AI tools and online shops. I work in React, TypeScript and Python, and I ship everything live on Vercel.',
+    cta: { label: 'View GitHub', href: GITHUB, external: true },
+  },
+  {
+    id: 'web',
+    tab: 'Web Developer',
+    icon: Monitor,
+    title: 'Web Developer',
+    lede:
+      'I build fast websites and online shops for Nigerian businesses that still sell only on WhatsApp and Instagram: a proper catalogue, cart, Paystack checkout and an owner dashboard.',
+    cta: { label: 'See client work', href: '#projects', external: false },
+  },
+  {
+    id: 'writer',
+    tab: 'Writer',
+    icon: PenLine,
+    title: 'Tech Writer',
+    lede:
+      'I write about Python, AI and modern web development for beginners and business owners, plus articles and books on Islamic themes.',
+    cta: { label: 'Read articles', href: '#articles', external: false },
+  },
+];
+
+const stack = [
+  'javascript', 'typescript', 'python', 'react', 'next.js', 'vite', 'tailwind css',
+  'html/css', 'node.js', 'git', 'vercel', 'paystack', 'gemini api', 'wordpress',
+];
+
+const filters = ['All', 'Web app', 'Client demo', 'AI'] as const;
+
+function useTyped(text: string, speed = 55) {
+  const [out, setOut] = useState('');
   useEffect(() => {
-    let startTime: number | null = null;
-    let animationFrame: number;
-
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = timestamp - startTime;
-      const percentage = Math.min(progress / duration, 1);
-      
-      setCount(Math.floor(target * percentage));
-
-      if (percentage < 1) {
-        animationFrame = requestAnimationFrame(animate);
-      }
-    };
-
-    animationFrame = requestAnimationFrame(animate);
-
-    return () => cancelAnimationFrame(animationFrame);
-  }, [target, duration]);
-
-  return <span className="stat-number">{count}</span>;
+    setOut('');
+    let i = 0;
+    const t = setInterval(() => {
+      i += 1;
+      setOut(text.slice(0, i));
+      if (i >= text.length) clearInterval(t);
+    }, speed);
+    return () => clearInterval(t);
+  }, [text, speed]);
+  return out;
 }
 
 export default function Home() {
-  const [theme, setTheme] = useState('dark');
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [expandedBlog, setExpandedBlog] = useState<number | null>(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [role, setRole] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [hideNav, setHideNav] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [filter, setFilter] = useState<(typeof filters)[number]>('All');
+  const [openPost, setOpenPost] = useState<number | null>(null);
+  const [status, setStatus] = useState<'idle' | 'sending' | 'ok' | 'err'>('idle');
+  const heroRef = useRef<HTMLElement>(null);
 
+  const current = roles[role];
+  const typed = useTyped(current.title);
+
+  // theme
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({
-        x: e.clientX,
-        y: e.clientY,
-      });
+    const saved = (localStorage.getItem('pf-theme') as 'light' | 'dark') ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    setTheme(saved);
+  }, []);
+  useEffect(() => {
+    document.documentElement.dataset.pf = theme;
+    localStorage.setItem('pf-theme', theme);
+  }, [theme]);
+
+  // floating nav: hide on scroll down, show on scroll up + progress bar
+  useEffect(() => {
+    let last = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(max > 0 ? y / max : 0);
+      setScrolled(y > 10);
+      setHideNav(y > 160 && y > last && !menuOpen);
+      last = y;
     };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [menuOpen]);
 
+  // float-in on scroll
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
+    const els = document.querySelectorAll('.pf-reveal');
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => {
+        if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
+      }),
+      { threshold: 0.12 },
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [filter]);
 
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    setTheme(savedTheme);
-    document.body.dataset.theme = savedTheme;
-
-    const handleScroll = () => {
-      const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
-      setScrollProgress(scrolled);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const location = useLocation();
-  useEffect(() => {
-    if (location.hash) {
-      const id = location.hash.substring(1);
-      setTimeout(() => {
-        const element = document.getElementById(id);
-        if (element) {
-          const navHeight = 80;
-          const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.pageYOffset - navHeight;
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth'
-          });
-        }
-      }, 100);
-    }
-  }, [location.hash]);
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-    document.body.dataset.theme = newTheme;
-    localStorage.setItem('theme', newTheme);
+  // pointer glow in hero
+  const onHeroMove = (e: React.MouseEvent) => {
+    const r = heroRef.current?.getBoundingClientRect();
+    if (!r) return;
+    heroRef.current!.style.setProperty('--mx', `${e.clientX - r.left}px`);
+    heroRef.current!.style.setProperty('--my', `${e.clientY - r.top}px`);
   };
 
-  const handleContactSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const shown = useMemo(
+    () => (filter === 'All' ? projects : projects.filter((p) => p.kind === filter)),
+    [filter],
+  );
+  const liveCount = projects.filter((p) => p.demoLink?.startsWith('http')).length;
+
+  const go = (href: string) => {
+    setMenuOpen(false);
+    document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
-    setSubmitStatus('submitting');
-
-    const formData = new FormData(form);
-    const templateParams = {
-      contact_form_name: formData.get('name'),
-      contact_form_email: formData.get('email'),
-      contact_form_subject: formData.get('subject'),
-      contact_form_message: formData.get('message')
-    };
-
-    emailjs.send('service_3hmh0hd', 'template_kzw4u89', templateParams, 'tQg-ORHKROt-NGZdR')
-      .then(() => {
-        setSubmitStatus('success');
-        form.reset();
-        setTimeout(() => setSubmitStatus('idle'), 5000);
-      })
-      .catch((error) => {
-        console.error('EmailJS error:', error);
-        setSubmitStatus('error');
-        setTimeout(() => setSubmitStatus('idle'), 5000);
-      });
+    const d = new FormData(form);
+    setStatus('sending');
+    emailjs
+      .send('service_3hmh0hd', 'template_kzw4u89', {
+        contact_form_name: d.get('name'),
+        contact_form_email: d.get('email'),
+        contact_form_subject: d.get('subject'),
+        contact_form_message: d.get('message'),
+      }, 'tQg-ORHKROt-NGZdR')
+      .then(() => { setStatus('ok'); form.reset(); setTimeout(() => setStatus('idle'), 5000); })
+      .catch(() => { setStatus('err'); setTimeout(() => setStatus('idle'), 5000); });
   };
 
+  const nav = [
+    ['About', '#about'], ['Projects', '#projects'], ['Articles', '#articles'],
+    ['Services', '#services'], ['Contact', '#contact'],
+  ];
+
   return (
-    <>
-      <div className="scroll-progress" style={{ width: `${scrollProgress}%` }}></div>
-      
-      <nav className="navbar">
-        <div className="nav-container">
-          <div className="nav-logo">
-            <Code size={24} /> Sajjad Blog
-          </div>
-          <ul className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
-            <li><a href="#home" className="nav-link" onClick={() => setIsMenuOpen(false)}>Home</a></li>
-            <li><a href="#about" className="nav-link" onClick={() => setIsMenuOpen(false)}>About</a></li>
-            <li><a href="#projects" className="nav-link" onClick={() => setIsMenuOpen(false)}>Projects</a></li>
-            <li><a href="#blog" className="nav-link" onClick={() => setIsMenuOpen(false)}>Articles</a></li>
-            <li><a href="#services" className="nav-link" onClick={() => setIsMenuOpen(false)}>Services</a></li>
-            <li><a href="#contact" className="nav-link" onClick={() => setIsMenuOpen(false)}>Contact</a></li>
-          </ul>
-          <div className="nav-icons">
-            <button className="search-toggle" onClick={() => setIsSearchOpen(!isSearchOpen)}>
-              <Search size={18} />
-            </button>
-            <button className="theme-toggle" onClick={toggleTheme}>
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-            <button className="mobile-menu md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              {isMenuOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
-          </div>
-        </div>
-        
-        <div className={`search-bar ${isSearchOpen ? 'active' : ''}`}>
-          <input type="text" id="search-input" placeholder="Search articles & projects..." />
-          <button className="search-close" onClick={() => setIsSearchOpen(false)}>
-            <X size={20} />
-          </button>
-        </div>
-      </nav>
+    <div className="pf">
+      <div className="pf-progress" style={{ transform: `scaleX(${progress})` }} />
 
-      <section id="home" className="hero relative overflow-hidden bg-slate-950">
-        {/* Dynamic Background Elements */}
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-600/20 blur-[120px] mix-blend-screen animate-[pulse_8s_ease-in-out_infinite_alternate]"></div>
-          <div className="absolute top-[20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-purple-600/20 blur-[150px] mix-blend-screen animate-[pulse_12s_ease-in-out_infinite_alternate-reverse]"></div>
-          
-          {/* Dynamic Mouse Gradient */}
-          <div 
-            className="absolute inset-0 z-0 transition-opacity duration-300"
-            style={{
-              background: `radial-gradient(600px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(99, 102, 241, 0.15), transparent 80%)`
-            }}
-          />
-          
-          {/* Subtle Grid Overlay */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-        </div>
-
-        <div className="hero-content relative z-10">
-          <div className="hero-text">
-            <h1 className="hero-title">Web/App Developer & <span className="gradient-text">Tech Writer</span></h1>
-            <p className="hero-subtitle">Building innovative solutions | Writing about Python, AI, Web Dev, Islamic Knowledge | Web/App Development Freelancer from Abuja, Nigeria</p>
-            <div className="hero-buttons">
-              <a href="#projects" className="btn btn-primary">
-                View Projects
-              </a>
-              <a href="#contact" className="btn btn-secondary">
-                Hire Me
-              </a>
-            </div>
-            
-            <div className="hero-stats-row mt-12 pt-8 border-t border-white/20 flex flex-row md:flex-col gap-8 md:gap-6 md:absolute md:right-0 md:top-1/2 md:-translate-y-1/2 md:border-t-0 md:border-l md:pl-8 md:mt-0 md:pt-0">
-              <div className="stat-item">
-                <StatCounter target={10} />
-                <span className="text-xs font-medium opacity-80 uppercase tracking-wider">Projects</span>
-              </div>
-              <div className="stat-item">
-                <StatCounter target={6} />
-                <span className="text-xs font-medium opacity-80 uppercase tracking-wider">Articles</span>
-              </div>
-              <div className="stat-item">
-                <StatCounter target={102} />
-                <span className="text-xs font-medium opacity-80 uppercase tracking-wider">Happy Clients</span>
-              </div>
-            </div>
-          </div>
-          <div className="hidden md:block">
-            {/* Empty div to maintain grid layout, or you can put an image here */}
-          </div>
-        </div>
-      </section>
-
-      <section id="about" className="section">
-        <div className="container">
-          <h2 className="section-title">About Me</h2>
-          <div className="about-grid">
-            <div className="about-text">
-              <h3 className="text-2xl font-semibold mb-4 text-[#667eea]">Web/App Developer & Freelancer</h3>
-              <p className="mb-6">Software developer from Nigeria. Building Python AI tools and responsive websites, passionate about AI, Machine Learning, Clean Code, Modern Web Tech, and helping local businesses go digital. Running a freelance tech business also writing books and articles about my industry and Islamic themes.</p>
-              <div className="skills">
-                <h4>Skills</h4>
-                <div className="skill-tags">
-                  {['HTML/CSS/JS', 'Python', 'React', 'Node.js', 'AI/ML', 'WordPress'].map((skill, index) => (
-                    <motion.span
-                      key={skill}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                    >
-                      {skill}
-                    </motion.span>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="about-image flex justify-center">
-              <img 
-                src="https://picsum.photos/seed/sajjad/800/800"
-                alt="Sajjad - Web/App Developer"
-                className="profile-photo"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="projects" className="section">
-        <div className="container">
-          <h2 className="section-title">Featured Projects</h2>
-          <div className="projects-grid">
-            {projects.map((project, index) => (
-              <div className="project-card" key={index}>
-                <img src={project.image} alt={project.title} referrerPolicy="no-referrer" />
-                <div className="card-content">
-                  <h3 className="card-title">{project.title}</h3>
-                  <div className="card-tech">
-                    {project.tech.map((t, i) => <span key={i}>{t}</span>)}
-                  </div>
-                  <p className="mb-4">{project.desc}</p>
-                  <div className="flex gap-3 mt-4">
-                    {project.demoLink && (
-                      <Link to={project.demoLink} className="btn btn-primary text-sm py-2 px-4 flex items-center gap-2 flex-1 justify-center">
-                        <ExternalLink size={18} /> Live Demo
-                      </Link>
-                    )}
-                    {project.link && (
-                      <a href={project.link} target="_blank" rel="noopener noreferrer" className="btn btn-secondary text-sm py-2 px-4 flex items-center gap-2 flex-1 justify-center">
-                        <Github size={18} /> Source Code
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </div>
+      {/* floating header */}
+      <header className={`pf-header ${hideNav ? 'is-hidden' : ''} ${scrolled ? 'is-scrolled' : ''}`}>
+        <div className="pf-header-in">
+          <a href="#top" className="pf-logo" onClick={(e) => { e.preventDefault(); go('#top'); }}>
+            Sajjad <span className="pf-badge">Dev</span>
+          </a>
+          <nav className="pf-nav">
+            {nav.map(([label, href]) => (
+              <a key={href} href={href} onClick={(e) => { e.preventDefault(); go(href); }}>{label}</a>
             ))}
+          </nav>
+          <div className="pf-header-actions">
+            <button
+              className={`pf-switch ${theme === 'dark' ? 'on' : ''}`}
+              aria-label="Toggle dark mode"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            >
+              <span>{theme === 'dark' ? <Moon size={13} /> : <Sun size={13} />}</span>
+            </button>
+            <button className="pf-icon-btn pf-burger" aria-label="Menu" onClick={() => setMenuOpen(!menuOpen)}>
+              {menuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </div>
-      </section>
+        {menuOpen && (
+          <div className="pf-mobile-nav">
+            {nav.map(([label, href]) => (
+              <a key={href} href={href} onClick={(e) => { e.preventDefault(); go(href); }}>{label}</a>
+            ))}
+            <a href={GITHUB} target="_blank" rel="noreferrer">GitHub <ArrowUpRight size={14} /></a>
+          </div>
+        )}
+      </header>
 
-      <section id="blog" className="section">
-        <div className="container">
-          <h2 className="section-title">My Articles</h2>
-          <div className="blog-grid">
-            {blogPosts.map((post, index) => (
-              <div className="blog-card" key={index}>
-                <img src={post.image} alt={post.title} referrerPolicy="no-referrer" />
-                <div className="card-content">
-                  <h3 className="card-title">{post.title}</h3>
-                  <p className="mb-2">{post.excerpt}</p>
-                  <small className="text-gray-500 block mb-4">{post.date}</small>
-                  
-                  <button 
-                    className="read-more-btn"
-                    onClick={() => setExpandedBlog(expandedBlog === index ? null : index)}
+      <main id="top">
+        {/* hero */}
+        <section className="pf-hero" ref={heroRef} onMouseMove={onHeroMove}>
+          <div className="pf-glow" aria-hidden />
+          <div className="pf-wrap">
+            <div className="pf-tabs" role="tablist">
+              {roles.map((r, i) => {
+                const Icon = r.icon;
+                return (
+                  <button
+                    key={r.id}
+                    role="tab"
+                    aria-selected={i === role}
+                    className={i === role ? 'active' : ''}
+                    onClick={() => setRole(i)}
                   >
-                    {expandedBlog === index ? 'Show Less' : 'Read Full Article'}
-                    {expandedBlog === index ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    <Icon size={16} /> {r.tab}
                   </button>
-                  
-                  <div className={`blog-article ${expandedBlog === index ? 'active' : ''}`}>
-                    <div className="article-content" dangerouslySetInnerHTML={{ __html: post.content }} />
+                );
+              })}
+            </div>
+
+            <div className="pf-hero-grid">
+              <div key={current.id} className="pf-hero-copy">
+                <current.icon size={30} strokeWidth={2.2} className="pf-hero-icon" />
+                <h1>
+                  {typed}
+                  <span className="pf-caret" aria-hidden>_</span>
+                </h1>
+                <p className="pf-lede">{current.lede}</p>
+                <div className="pf-btns">
+                  {current.cta.external ? (
+                    <a className="pf-btn pf-btn-dark" href={current.cta.href} target="_blank" rel="noreferrer">
+                      <Github size={17} /> {current.cta.label}
+                    </a>
+                  ) : (
+                    <a className="pf-btn pf-btn-dark" href={current.cta.href}
+                      onClick={(e) => { e.preventDefault(); go(current.cta.href); }}>
+                      {current.cta.label}
+                    </a>
+                  )}
+                  <a className="pf-btn pf-btn-ghost" href="#contact" onClick={(e) => { e.preventDefault(); go('#contact'); }}>
+                    Say hello
+                  </a>
+                </div>
+              </div>
+
+              {/* floating terminal */}
+              <div className="pf-terminal-float">
+                <div className="pf-terminal">
+                  <div className="pf-term-bar">
+                    <span className="dots"><i /><i /><i /></span>
+                    <span>~/sajjad</span>
+                    <span className="muted">zsh</span>
+                  </div>
+                  <div className="pf-term-body">
+                    <p><b>$</b> whoami</p>
+                    <p className="out">Sajjad Hassan, SWE student @ FUT Minna</p>
+                    <p><b>$</b> cat location.txt</p>
+                    <p className="out">Abuja, Nigeria 🇳🇬</p>
+                    <p><b>$</b> ls ./stack</p>
+                    <p className="out stack">{stack.map((s) => <span key={s}>{s}</span>)}</p>
+                    <p><b>$</b> status</p>
+                    <p className="out"><span className="pf-live-dot" /> open to freelance work</p>
+                    <p><b>$</b> <span className="pf-block-caret" /></p>
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* floating marquee */}
+        <div className="pf-marquee" aria-hidden>
+          <div className="pf-marquee-track">
+            {[...stack, ...stack].map((s, i) => (
+              <span key={i}><b>{'</>'}</b> {s}</span>
             ))}
           </div>
         </div>
-      </section>
 
-      <section id="services" className="section">
-        <div className="container">
-          <h2 className="section-title">Services for Business</h2>
-          <div className="services-grid">
-            <div className="service-card">
-              <div className="icon-wrapper">
-                <Laptop size={32} />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Web Development</h3>
-              <p>Modern, responsive websites that convert visitors to customers</p>
-            </div>
-            <div className="service-card">
-              <div className="icon-wrapper">
-                <Bot size={32} />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">AI Automation</h3>
-              <p>Python bots and automation for business efficiency</p>
-            </div>
-            <div className="service-card">
-              <div className="icon-wrapper">
-                <Ticket size={32} />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Event Ticketing</h3>
-              <p>Custom ticketing platforms for events, concerts, and businesses</p>
-            </div>
+        {/* stats */}
+        <section className="pf-wrap pf-stats pf-reveal">
+          <div><b>{projects.length}</b><span>Projects on GitHub</span></div>
+          <div><b>{liveCount}</b><span>Live sites</span></div>
+          <div><b>{blogPosts.length}</b><span>Articles</span></div>
+          <div><b>300L</b><span>Software Engineering</span></div>
+        </section>
+
+        {/* about */}
+        <section id="about" className="pf-section pf-wrap">
+          <div className="pf-head pf-reveal">
+            <span className="pf-kicker">01 / about</span>
+            <h2>Code that helps real businesses.</h2>
           </div>
-        </div>
-      </section>
+          <div className="pf-about">
+            <div className="pf-reveal">
+              <p>
+                I'm Sajjad, a Software Engineering student at the Federal University of Technology, Minna.
+                I build responsive websites, React apps and Python AI tools, and I help local businesses
+                in Abuja go digital with online shops that actually take orders.
+              </p>
+              <p>
+                When I'm not coding, I'm writing: tutorials on Python and the modern web, and pieces on Islamic themes.
+              </p>
+            </div>
+            <ul className="pf-now pf-reveal">
+              <li><Store size={18} /><div><b>Building</b><span>Online shops for Abuja food and fashion brands</span></div></li>
+              <li><Bot size={18} /><div><b>Exploring</b><span>AI tools with Python and the Gemini API</span></div></li>
+              <li><Globe size={18} /><div><b>Shipping</b><span>Everything live on Vercel, source on GitHub</span></div></li>
+            </ul>
+          </div>
+        </section>
 
-      <section id="testimonials" className="section bg-[var(--card-bg)]">
-        <div className="container">
-          <h2 className="section-title">Client Testimonials</h2>
-          <div className="relative max-w-4xl mx-auto overflow-hidden rounded-2xl">
-            <div 
-              className="flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentTestimonial * 100}%)` }}
-            >
-              {testimonials.map((testimonial) => (
-                <div key={testimonial.id} className="w-full shrink-0 px-2 md:px-4 py-2">
-                  <div className="bg-white px-6 py-10 md:px-16 md:py-12 rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative h-full flex flex-col justify-center items-center text-center overflow-hidden group">
-                    {/* Decorative Top Border */}
-                    <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-80 group-hover:opacity-100 transition-opacity"></div>
-                    
-                    {/* Large Quote Icon */}
-                    <div className="absolute -top-2 -left-2 text-indigo-50 opacity-60 transform -rotate-6">
-                      <svg width="80" height="80" className="md:w-[100px] md:h-[100px]" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M14.017 21L16.41 14.592C16.634 13.987 16.75 13.344 16.75 12.686V6H22V12.686C22 15.584 20.849 18.363 18.803 20.41L14.017 21ZM5.01697 21L7.40997 14.592C7.63397 13.987 7.74997 13.344 7.74997 12.686V6H13V12.686C13 15.584 11.849 18.363 9.80297 20.41L5.01697 21Z" />
-                      </svg>
-                    </div>
-                    
-                    <p className="text-base md:text-xl italic mb-8 relative z-10 text-slate-700 leading-relaxed max-w-2xl mx-auto font-medium">"{testimonial.content}"</p>
-                    
-                    <div className="flex flex-col items-center gap-3 md:gap-4 mt-auto">
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 to-pink-500 rounded-full blur-[6px] opacity-40 group-hover:opacity-70 transition-opacity"></div>
-                        <img src={testimonial.image} alt={testimonial.name} className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover border-2 border-white relative z-10 shadow-sm" referrerPolicy="no-referrer" />
-                      </div>
-                      <div className="flex flex-col items-center">
-                        <h4 className="font-bold text-sm md:text-base text-slate-900">{testimonial.name}</h4>
-                        <p className="text-xs md:text-sm text-indigo-600 font-medium">{testimonial.role}</p>
-                        <p className="text-[9px] md:text-[10px] uppercase tracking-wider mt-1 text-slate-400 font-bold">{testimonial.project}</p>
-                      </div>
-                    </div>
-                  </div>
+        {/* projects */}
+        <section id="projects" className="pf-section pf-wrap">
+          <div className="pf-head pf-reveal">
+            <span className="pf-kicker">02 / projects</span>
+            <h2>Things I've built.</h2>
+            <a className="pf-more" href={GITHUB} target="_blank" rel="noreferrer">All repos <ArrowUpRight size={15} /></a>
+          </div>
+          <div className="pf-chips pf-reveal">
+            {filters.map((f) => (
+              <button key={f} className={f === filter ? 'on' : ''} onClick={() => setFilter(f)}>{f}</button>
+            ))}
+          </div>
+          <div className="pf-grid">
+            {shown.map((p) => (
+              <article key={p.title} className="pf-card pf-reveal">
+                <div className="pf-card-top">
+                  <span className="pf-kind">{p.kind}</span>
+                  <span className={`pf-status s-${p.status.toLowerCase()}`}>{p.status}</span>
                 </div>
-              ))}
-            </div>
-            
-            {/* Carousel Controls - Hidden on mobile */}
-            <button 
-              onClick={() => setCurrentTestimonial(prev => prev === 0 ? testimonials.length - 1 : prev - 1)}
-              className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 bg-white p-3 rounded-r-2xl border border-l-0 border-slate-100 text-slate-400 hover:text-indigo-600 hover:shadow-lg transition-all z-10 shadow-md items-center justify-center"
-              aria-label="Previous testimonial"
-            >
-              <ChevronLeft size={24} />
-            </button>
-            <button 
-              onClick={() => setCurrentTestimonial(prev => (prev + 1) % testimonials.length)}
-              className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 bg-white p-3 rounded-l-2xl border border-r-0 border-slate-100 text-slate-400 hover:text-indigo-600 hover:shadow-lg transition-all z-10 shadow-md items-center justify-center"
-              aria-label="Next testimonial"
-            >
-              <ChevronRight size={24} />
-            </button>
-            
-            {/* Carousel Indicators */}
-            <div className="flex justify-center gap-2 mt-8">
-              {testimonials.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentTestimonial(idx)}
-                  className={`h-2.5 rounded-full transition-all duration-300 ${currentTestimonial === idx ? 'bg-indigo-600 w-8' : 'bg-slate-300 w-2.5 hover:bg-indigo-400'}`}
-                  aria-label={`Go to testimonial ${idx + 1}`}
-                />
-              ))}
-            </div>
+                <h3>{p.title}</h3>
+                <p>{p.desc}</p>
+                <div className="pf-tags">{p.tech.map((t) => <span key={t}>{t}</span>)}</div>
+                <div className="pf-card-links">
+                  {p.link && (
+                    <a href={p.link} target="_blank" rel="noreferrer"><Github size={15} /> Source</a>
+                  )}
+                  {p.demoLink && (
+                    <a href={p.demoLink} target={p.demoLink.startsWith('http') ? '_blank' : undefined} rel="noreferrer">
+                      <ArrowUpRight size={15} /> Live
+                    </a>
+                  )}
+                </div>
+              </article>
+            ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section id="contact" className="section">
-        <div className="container">
-          <h2 className="section-title">Let's Work Together</h2>
-          
-          {submitStatus === 'success' && (
-            <div className="max-w-[600px] mx-auto mb-8 p-4 bg-emerald-100 text-emerald-800 rounded-xl flex items-center gap-3 animate-[slideIn_0.5s_ease]">
-              <CheckCircle size={24} className="text-emerald-600" />
-              <div>
-                <h4 className="font-semibold">Message sent successfully!</h4>
-                <p className="text-sm">I'll get back to you as soon as possible.</p>
+        {/* articles */}
+        <section id="articles" className="pf-section pf-wrap">
+          <div className="pf-head pf-reveal">
+            <span className="pf-kicker">03 / writing</span>
+            <h2>Articles.</h2>
+          </div>
+          <div className="pf-posts">
+            {blogPosts.map((post, i) => (
+              <div key={post.title} className={`pf-post pf-reveal ${openPost === i ? 'open' : ''}`}>
+                <button className="pf-post-row" onClick={() => setOpenPost(openPost === i ? null : i)}>
+                  <span className="pf-post-date">{post.date}</span>
+                  <span className="pf-post-title">
+                    <b>{post.title}</b>
+                    <small>{post.excerpt}</small>
+                  </span>
+                  <ChevronDown size={18} className="pf-chev" />
+                </button>
+                {openPost === i && (
+                  <div className="pf-article" dangerouslySetInnerHTML={{ __html: post.content }} />
+                )}
               </div>
-            </div>
-          )}
+            ))}
+          </div>
+        </section>
 
-          {submitStatus === 'error' && (
-            <div className="max-w-[600px] mx-auto mb-8 p-4 bg-red-100 text-red-800 rounded-xl flex items-center gap-3 animate-[slideIn_0.5s_ease]">
-              <AlertCircle size={24} className="text-red-600" />
-              <div>
-                <h4 className="font-semibold">Oops! Something went wrong.</h4>
-                <p className="text-sm">Please try again or email me directly.</p>
+        {/* services */}
+        <section id="services" className="pf-section pf-wrap">
+          <div className="pf-head pf-reveal">
+            <span className="pf-kicker">04 / services</span>
+            <h2>What I can build for you.</h2>
+          </div>
+          <div className="pf-services">
+            {[
+              { icon: Store, t: 'Business websites and shops', d: 'A catalogue, cart and checkout your customers can use without sending you a DM first.' },
+              { icon: Bot, t: 'AI and automation', d: 'Python bots and small AI tools that save your business time on repeat work.' },
+              { icon: Monitor, t: 'Web apps', d: 'Dashboards, booking and ticketing apps built in React and TypeScript.' },
+            ].map(({ icon: Icon, t, d }) => (
+              <div key={t} className="pf-service pf-reveal">
+                <Icon size={22} />
+                <h3>{t}</h3>
+                <p>{d}</p>
               </div>
-            </div>
-          )}
+            ))}
+          </div>
+        </section>
 
-          <form className="contact-form" onSubmit={handleContactSubmit}>
-            <div className="form-group">
-              <input type="text" name="name" placeholder="Your Name" required disabled={submitStatus === 'submitting'} />
-              <input type="email" name="email" placeholder="Your Email" required disabled={submitStatus === 'submitting'} />
+        {/* contact */}
+        <section id="contact" className="pf-section pf-wrap">
+          <div className="pf-contact pf-reveal">
+            <div>
+              <span className="pf-kicker">05 / contact</span>
+              <h2>Let's build something.</h2>
+              <p className="pf-lede">Have a business that needs a website, or a project idea? Send a message and I'll reply soon.</p>
+              <a className="pf-btn pf-btn-ghost" href={GITHUB} target="_blank" rel="noreferrer"><Github size={17} /> github.com/sajjadh09</a>
             </div>
-            <div className="form-group">
-              <input type="text" name="subject" placeholder="Project/Business Inquiry" required disabled={submitStatus === 'submitting'} />
-            </div>
-            <div className="form-group">
-              <textarea name="message" placeholder="Tell me about your project..." rows={5} required disabled={submitStatus === 'submitting'}></textarea>
-            </div>
-            <button type="submit" className="btn btn-primary w-full md:w-auto" disabled={submitStatus === 'submitting'}>
-              {submitStatus === 'submitting' ? 'Sending...' : 'Send Message'}
-            </button>
-          </form>
-        </div>
-      </section>
+            <form className="pf-form" onSubmit={submit}>
+              {status === 'ok' && <div className="pf-alert ok"><CheckCircle size={18} /> Message sent. I'll get back to you soon.</div>}
+              {status === 'err' && <div className="pf-alert err"><AlertCircle size={18} /> Something went wrong. Please try again.</div>}
+              <div className="pf-row">
+                <input name="name" placeholder="Your name" required disabled={status === 'sending'} />
+                <input name="email" type="email" placeholder="Your email" required disabled={status === 'sending'} />
+              </div>
+              <input name="subject" placeholder="What's it about?" required disabled={status === 'sending'} />
+              <textarea name="message" rows={5} placeholder="Tell me about your project..." required disabled={status === 'sending'} />
+              <button className="pf-btn pf-btn-dark" type="submit" disabled={status === 'sending'}>
+                <Send size={16} /> {status === 'sending' ? 'Sending...' : 'Send message'}
+              </button>
+            </form>
+          </div>
+        </section>
+      </main>
 
-      <footer className="footer">
-        <div className="container">
-          <p>&copy; 2026 Sajjad. Built with ❤ and clean code</p>
+      <footer className="pf-footer">
+        <div className="pf-wrap">
+          <span>© {new Date().getFullYear()} Sajjad Hassan</span>
+          <span className="muted">Built with React and Vite. Hosted on Vercel.</span>
         </div>
       </footer>
-    </>
+    </div>
   );
 }
